@@ -88,7 +88,7 @@ La funzione:
 
 La board esegue un semplice miniserver che ascolta su /fn1 ed esegue un comando di deploy Nuclio.
 
-File: board/server.js
+File: [board/server.js](https://github.com/fabiooraziomirto/FaaS4Things/blob/main/board/server.js)
 
 Esecuzione:
 
@@ -122,7 +122,7 @@ Assicurati che nuctl sia disponibile sulla board e che un registry Docker locale
 ├── deploy/
 │   └── nuclio-trigger.yaml      # (opzionale) Configurazione YAML Nuclio
 ├── docs/
-│   └── architecture.png         # Diagramma architettura
+│   └── FaaS4T.png         # Diagramma architettura
 ├── README.md
 └── ...
 ```

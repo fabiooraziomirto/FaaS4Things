@@ -1,0 +1,79 @@
+metadata:
+  name: iotronic-event-handler
+spec:
+  runtime: golang
+  handler: main:Handler
+  triggers:
+    rabbit:
+      kind: rabbitMq
+      class: async
+      url: amqp://user:password@rabbitmq-host:5672
+      attributes:
+        exchangeName: openstack
+        queueName: iotronic.conductor_manager
+        topics: ["#"]
+  build:
+    functionSourceCode: |
+      package main
+      import (
+          "io"
+          "net/http"
+          "os"
+          "github.com/nuclio/nuclio-sdk-go"
+      )
+      const eventLogFilePath = "/tmp/events.json"
+      const iotronicServiceURL = "http://10.43.100.186:50061/fn1"
+ 
+      func Handler(context *nuclio.Context, event nuclio.Event) (interface{}, error) {
+          context.Logger.InfoWith("Received event", "body", string(event.GetBody()))
+ 
+          if event.GetTriggerInfo().GetClass() == "async" &&
+             event.GetTriggerInfo().GetKind() == "rabbitMq" {
+ 
+              resp, err := http.Get(iotronicServiceURL)
+              if err != nil {
+                  context.Logger.ErrorWith("Failed to call iotronic-wstun service", "error", err)
+              } else {
+                  defer resp.Body.Close()
+                  context.Logger.InfoWith("Successfully called iotronic-wstun service",
+                                          "statusCode", resp.StatusCode)
+              }
+ 
+              eventLogFile, err := os.OpenFile(eventLogFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+              if err != nil {
+                  return nil, err
+              }
+              defer eventLogFile.Close()
+ 
+              for _, dataToWrite := range [][]byte{
+                  event.GetBody(),
+                  []byte(", "),
+              } {
+                  if _, err = eventLogFile.Write(dataToWrite); err != nil {
+                      return nil, err
+                  }
+              }
+ 
+              return nil, nil
+          }
+ 
+          eventLogFile, err := os.OpenFile(eventLogFilePath, os.O_RDONLY, 0600)
+          if err != nil {
+              return nil, err
+          }
+          defer eventLogFile.Close()
+ 
+          eventLogFileContents, err := io.ReadAll(eventLogFile)
+          if err != nil {
+              return nil, err
+          }
+ 
+          eventLogFileContentsString := "[" + 
+              string(eventLogFileContents[:len(eventLogFileContents)-2]) + "]"
+ 
+          return nuclio.Response{
+              StatusCode: http.StatusOK,
+              ContentType: "application/json",
+              Body: []byte(eventLogFileContentsString),
+          }, nil
+      }
