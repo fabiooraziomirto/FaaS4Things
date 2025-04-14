@@ -11,7 +11,7 @@ Questo progetto mostra un'architettura serverless che sfrutta Nuclio, RabbitMQ e
 5. La board, tramite un miniserver Node.js, esegue il deploy di una funzione Nuclio localmente.
 
 📌 Diagramma dettagliato 
-![FaaS4T](docs\FaaS4T.PNG "FaaS4T")
+![FaaS4T](docs/FaaS4T.PNG "FaaS4T")
 
 ## ⚙️ Requisiti
 
@@ -78,7 +78,7 @@ La funzione scritta in Go si trova in functions/fn1.go. È configurata per attiv
 La funzione:
 
 - Logga il corpo dell'evento ricevuto
-- Effettua una GET verso http://<board-ip>:8080/fn1
+- Effettua una GET verso http://\<board-ip>:8080/fn1
 - Salva localmente gli eventi su /tmp/events.json
 - Restituisce l'elenco degli eventi come JSON
 
@@ -122,7 +122,7 @@ Assicurati che nuctl sia disponibile sulla board e che un registry Docker locale
 ├── deploy/
 │   └── nuclio-trigger.yaml      # (opzionale) Configurazione YAML Nuclio
 ├── docs/
-│   └── FaaS4T.png         # Diagramma architettura
+│   └── FaaS4T.png               # Diagramma architettura
 ├── README.md
 └── ...
 ```
