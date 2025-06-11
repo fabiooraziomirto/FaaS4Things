@@ -147,6 +147,58 @@ def get_status():
         ]
     })
  
+@app.route('/deploy-github-to', methods=['POST'])
+def deploy_github_to_specific_node():
+    """Deploy da GitHub su un nodo specifico"""
+    try:
+        data = request.get_json()
+        if not data or 'nodeUrl' not in data:
+            return jsonify({'error': 'Campo "nodeUrl" mancante'}), 400
+ 
+        node_url = data.pop('nodeUrl')
+        logger.info(f"Deploy GitHub mirato su nodo: {node_url}")
+ 
+        response = requests.post(f"{node_url}/deploy-github", json=data, timeout=120)
+ 
+        return jsonify({
+            'status': 'success' if response.status_code == 200 else 'error',
+            'node': node_url,
+            'response': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+        }), response.status_code
+ 
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Errore nella richiesta GitHub al nodo: {e}")
+        return jsonify({'error': 'Errore di connessione al nodo'}), 502
+    except Exception as e:
+        logger.error(f"Errore generico GitHub: {e}")
+        return jsonify({'error': 'Errore interno'}), 500
+    
+@app.route('/deploy-to', methods=['POST'])
+def deploy_to_specific_node():
+    """Deploya una funzione su un nodo specifico"""
+    try:
+        data = request.get_json()
+        if not data or 'nodeUrl' not in data:
+            return jsonify({'error': 'Campo "nodeUrl" mancante'}), 400
+ 
+        node_url = data.pop('nodeUrl')
+        logger.info(f"Deploy mirato su nodo: {node_url}")
+ 
+        response = requests.post(f"{node_url}/deploy", json=data, timeout=30)
+ 
+        return jsonify({
+            'status': 'success' if response.status_code == 200 else 'error',
+            'node': node_url,
+            'response': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+        }), response.status_code
+ 
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Errore nella richiesta al nodo: {e}")
+        return jsonify({'error': 'Errore di connessione al nodo'}), 502
+    except Exception as e:
+        logger.error(f"Errore generico: {e}")
+        return jsonify({'error': 'Errore interno'}), 500
+
 @app.route('/nodes/health', methods=['GET'])
 def check_nodes_health():
     """Verifica lo stato di salute di tutti i nodi"""
@@ -180,6 +232,8 @@ if __name__ == '__main__':
     logger.info("Endpoints disponibili:")
     logger.info("  POST /deploy - Deploy da codice inline")
     logger.info("  POST /deploy-github - Deploy da repository GitHub")
+    logger.info("  POST /deploy-to - Deploy da codice inline su un nodo specifico")
+    logger.info("  POST /deploy-github-to - Deploy da repository GitHub su un nodo specifico")
     logger.info("  GET /status - Status del load balancer")
     logger.info("  GET /nodes/health - Health check di tutti i nodi")
  
