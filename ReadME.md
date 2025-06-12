@@ -139,7 +139,20 @@ Assicurati che nuctl sia disponibile sulla board e che un registry Docker locale
 
 ---
 
-
+## Common errors:
+1. Error during "docker login": "Error saving credentials: error storing credentials - err: exit status 255, out: ``"
+   Solution:
+   Disabilita il salvataggio delle credenziali
+   ```
+    nano ~/.docker/config.json
+    ```
+    Rimuovi questa riga per disabilitare il credential helper:
+    ```
+    {
+      "credsStore": "desktop"   // ← Cambia o rimuovi questa riga 
+    }
+  ```
+  After that, it is possible to execute again "docker login"
 📌 Ultimo aggiornamento: Aprile 2025
 
 
