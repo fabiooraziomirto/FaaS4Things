@@ -7,7 +7,7 @@ Supporta deploy da codice inline e da repository GitHub
 from flask import Flask, request, jsonify
 import requests
 import logging
-import random
+import time
  
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -29,11 +29,14 @@ def get_next_node():
  
     for node in NODES:
         try:
+            start_time = time.time()
             response = requests.get(f"{node}/functions", timeout=5)
+            response_time = time.time() - start_time
+            
             if response.status_code == 200:
                 functions = response.json()
                 num_functions = len(functions) if isinstance(functions, list) else 0
-                nodes_load.append((node, num_functions))
+                nodes_load.append((node, num_functions, response_time))
             else:
                 logger.warning(f"Nodo {node} non ha risposto correttamente a /functions")
         except Exception as e:
@@ -44,11 +47,11 @@ def get_next_node():
         return None  # Nessun nodo disponibile
  
     # Trova il minimo carico
-    min_count = min(load for _, load in nodes_load)
-    least_loaded_nodes = [node for node, count in nodes_load if count == min_count]
+    min_count = min(load for _, load, _ in nodes_load)
+    least_loaded_nodes = [(node, response_time) for node, count, response_time in nodes_load if count == min_count]
  
-    # Se più nodi hanno lo stesso carico minimo, sceglili a caso (round robin opzionale)
-    selected_node = random.choice(least_loaded_nodes)
+    # Se più nodi hanno lo stesso carico minimo, prendi quello che ha risposto prima
+    selected_node = min(least_loaded_nodes, key=lambda x: x[1])[0]
     return selected_node
  
 @app.route('/deploy', methods=['POST'])
