@@ -35,4 +35,5 @@ func Handler(context nuclio.Context, event nuclio.Event) (interface{}, error) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	context.Logger.InfoWith("Forwarded to Node.js", "response", string(body))
  
-	return string(b
+	return string(body), nil
+}
