@@ -7,7 +7,7 @@ def handler(context, event):
     """
     Handler principale per Nuctl.
     Event può contenere:
-    - size: dimensione dell'array (default: 10)
+    - size: dimensione dell'array (default: 100)
     - max_val: valore massimo per gli elementi (default: 100)
     - array: array personalizzato da ordinare (opzionale)
     """
@@ -21,7 +21,7 @@ def handler(context, event):
         # Parsare il body JSON dall'evento
         event_body = json.loads(event.body.decode('utf-8')) if event.body else {}
 
-        size = event_body.get('size', 10)
+        size = event_body.get('size', 100)
         max_val = event_body.get('max_val', 100)
         custom_array = event_body.get('array', None)
 
