@@ -10,7 +10,7 @@ def handler(context, event):
     context.logger.info('Eseguendo Bubble Sort O(n²) su array statico decrescente di 100 elementi...')
 
     # Array statico di 100 elementi in ordine decrescente (da 99 a 0)
-    data = list(range(99, -1, -1))
+    data = list(range(999, -1, -1))
     context.logger.info(f'Usando array statico di {len(data)} elementi ordinati in modo decrescente')
 
     try:
