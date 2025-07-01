@@ -1,39 +1,19 @@
-# quadratic_operations.py
 import json
-import random
 import time
 
 def handler(context, event):
     """
     Handler principale per Nuctl.
-    Event può contenere:
-    - size: dimensione dell'array (default: 100)
-    - max_val: valore massimo per gli elementi (default: 100)
-    - array: array personalizzato da ordinare (opzionale)
+    Usa sempre un array statico di 100 elementi ordinati in modo decrescente (caso peggiore).
     """
 
-    context.logger.info('Eseguendo Bubble Sort O(n²)...')
+    context.logger.info('Eseguendo Bubble Sort O(n²) su array statico decrescente di 100 elementi...')
 
-    # Imposta seed per rendere l'array casuale sempre diverso
-    random.seed(time.time_ns())
+    # Array statico di 100 elementi in ordine decrescente (da 99 a 0)
+    data = list(range(99, -1, -1))
+    context.logger.info(f'Usando array statico di {len(data)} elementi ordinati in modo decrescente')
 
     try:
-        # Parsare il body JSON dall'evento
-        event_body = json.loads(event.body.decode('utf-8')) if event.body else {}
-
-        size = event_body.get('size', 100)
-        max_val = event_body.get('max_val', 100)
-        custom_array = event_body.get('array', None)
-
-        context.logger.info(f'Parametri ricevuti - size: {size}, max_val: {max_val}')
-
-        if custom_array:
-            data = custom_array
-            context.logger.info(f'Usando array personalizzato di {len(data)} elementi')
-        else:
-            data = genera_array_random(size, max_val)
-            context.logger.info(f'Generato array casuale di {len(data)} elementi')
-
         start_time = time.time()
         bubble_sort(data)
         end_time = time.time()
@@ -82,10 +62,6 @@ def bubble_sort(arr):
             if arr[j] > arr[j + 1]:
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
-# Funzione per generare un array casuale
-def genera_array_random(size, max_val):
-    return [random.randint(0, max_val) for _ in range(size)]
-
 
 # Test locale (non eseguito su Nuctl)
 if __name__ == "__main__":
@@ -108,12 +84,6 @@ if __name__ == "__main__":
 
     mock_context = MockContext()
 
-    # Test con parametri default
-    test_event = type("Event", (), {"body": json.dumps({"size": 10, "max_val": 100}).encode('utf-8')})()
+    # Test con array statico decrescente
+    test_event = type("Event", (), {"body": None})()
     handler(mock_context, test_event)
-
-    print("\n" + "="*50 + "\n")
-
-    # Test con array personalizzato
-    test_event_custom = type("Event", (), {"body": json.dumps({"array": [5, 3, 8, 1, 2]}).encode('utf-8')})()
-    handler(mock_context, test_event_custom)
