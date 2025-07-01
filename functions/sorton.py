@@ -5,7 +5,7 @@ def handler(context, event):
     context.logger.info('Eseguendo operazioni lineari O(n) su array statico di 100 elementi...')
 
     # Array statico di 100 elementi (esempio con numeri da 0 a 99)
-    data = list(range(100))
+    data = list(range(1000))
     context.logger.info(f'Usando array statico di {len(data)} elementi')
 
     try:
