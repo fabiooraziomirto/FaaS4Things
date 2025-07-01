@@ -31,9 +31,14 @@ def handler(context, event):
                 event_data = {}
         
         # Usa valori di default se non sono presenti nell'event
-        size = event_data.get('size', 10) if isinstance(event_data, dict) else 10
-        max_val = event_data.get('max_val', 100) if isinstance(event_data, dict) else 100
-        custom_array = event_data.get('array', None) if isinstance(event_data, dict) else None
+        if isinstance(event_data, dict):
+            size = event_data.get('size', 10)
+            max_val = event_data.get('max_val', 100)
+            custom_array = event_data.get('array', None)
+        else:
+            size = 10
+            max_val = 100
+            custom_array = None
         
         context.logger.info(f'Parametri ricevuti - size: {size}, max_val: {max_val}')
         
