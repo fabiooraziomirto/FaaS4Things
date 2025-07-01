@@ -19,9 +19,21 @@ def handler(context, event):
     
     try:
         # Parse degli argomenti dall'event
-        size = event.get('size', 10)
-        max_val = event.get('max_val', 100)
-        custom_array = event.get('array', None)
+        # In Nuctl, i dati possono essere in event.body se è una POST request
+        # o negli headers/query parameters per GET
+        event_data = {}
+        
+        # Prova a parsare il body se presente
+        if hasattr(event, 'body') and event.body:
+            try:
+                event_data = json.loads(event.body)
+            except:
+                event_data = {}
+        
+        # Usa valori di default se non sono presenti nell'event
+        size = event_data.get('size', 10) if isinstance(event_data, dict) else 10
+        max_val = event_data.get('max_val', 100) if isinstance(event_data, dict) else 100
+        custom_array = event_data.get('array', None) if isinstance(event_data, dict) else None
         
         context.logger.info(f'Parametri ricevuti - size: {size}, max_val: {max_val}')
         
