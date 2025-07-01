@@ -11,7 +11,7 @@ def handler(context, event):
         # Parsare il body JSON dall'evento
         event_body = json.loads(event.body.decode('utf-8')) if event.body else {}
         
-        size = event_body.get('size', 10)
+        size = event_body.get('size', 100)
         max_val = event_body.get('max_val', 100)
         custom_array = event_body.get('array', None)
         
