@@ -6,7 +6,7 @@ import threading
 from typing import Dict, List, Tuple
 
 def handler(context, event):
-    context.logger.info('Eseguendo operazioni lineari O(n) su array statico con monitoraggio CPU e RAM...')
+    context.logger.info('Eseguendo operazioni lineari O(n) su array statico con monitoraggio CPU e RAM migliorato...')
     
     # Array statico di 1000 elementi
     data = list(range(1000))
@@ -24,6 +24,8 @@ def handler(context, event):
         
         # Misura le risorse prima dell'esecuzione
         initial_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+        # Inizializza CPU monitoring con una prima lettura
+        psutil.cpu_percent(interval=0.1)  # Prima lettura di inizializzazione
         initial_cpu = psutil.cpu_percent(interval=0.1)
         
         start_time = time.time()
@@ -66,7 +68,8 @@ def handler(context, event):
             "array_info": {
                 "size": len(data),
                 "sum": result,
-                "complexity": "O(n)"
+                "complexity": "O(n)",
+                "algorithm": "linear_sum"
             },
             "performance": {
                 "execution_time_seconds": execution_time,
@@ -99,8 +102,8 @@ def handler(context, event):
             # Metadati aggiuntivi per analisi
             "test_metadata": {
                 "request_id": f"req_{int(start_timestamp * 1000)}",
-                "function_name": "on2",
-                "array_type": "static",
+                "function_name": "linear_sum_on",
+                "array_type": "static_ascending",
                 "monitoring_samples": {
                     "cpu": cpu_stats["samples"],
                     "memory": memory_stats["samples"]
@@ -159,7 +162,7 @@ def sum_array(arr):
 class ResourceMonitor:
     """Classe per monitorare CPU e RAM durante l'esecuzione"""
     
-    def __init__(self, interval: float = 0.05):  # Intervallo ridotto per più campioni
+    def __init__(self, interval: float = 0.02):  # Intervallo ridotto a 20ms per più campioni
         self.interval = interval
         self.monitoring = False
         self.cpu_readings: List[float] = []
@@ -184,12 +187,14 @@ class ResourceMonitor:
     
     def _monitor_resources(self):
         """Metodo interno per raccogliere i dati delle risorse"""
+        # Prima lettura per inizializzare psutil
+        psutil.cpu_percent(interval=None)
+        
         while self.monitoring:
             try:
-                # CPU usage (percentuale del sistema)
-                cpu_percent = psutil.cpu_percent(interval=None)
-                if cpu_percent > 0:  # Solo se abbiamo una lettura valida
-                    self.cpu_readings.append(cpu_percent)
+                # CPU usage con intervallo breve per letture più accurate
+                cpu_percent = psutil.cpu_percent(interval=0.01)  # 10ms invece di None
+                self.cpu_readings.append(cpu_percent)  # Registra sempre, anche se 0
                 
                 # Memory usage del processo corrente (in MB)
                 memory_mb = self.process.memory_info().rss / 1024 / 1024
@@ -224,3 +229,31 @@ class ResourceMonitor:
             "min": round(min(self.memory_readings), 2),
             "samples": len(self.memory_readings)
         }
+
+# Test locale (non eseguito su Nuctl)
+if __name__ == "__main__":
+    class MockContext:
+        class Logger:
+            def info(self, msg): print(f"INFO: {msg}")
+            def error(self, msg): print(f"ERROR: {msg}")
+        
+        class Response:
+            def __init__(self, body, headers, content_type, status_code):
+                self.body = body
+                self.headers = headers
+                self.content_type = content_type
+                self.status_code = status_code
+                print(f"Response [{status_code}]: {json.loads(body)['status'] if 'status' in json.loads(body) else 'unknown'}")
+                print(f"Execution time: {json.loads(body).get('execution_time', 'N/A')} seconds")
+                print(f"CPU average: {json.loads(body).get('cpu_usage', {}).get('average_percent', 'N/A')}%")
+                print(f"Memory average: {json.loads(body).get('memory_usage', {}).get('average_mb', 'N/A')} MB")
+                print(f"Sum result: {json.loads(body).get('array_info', {}).get('sum', 'N/A')}")
+        
+        def __init__(self):
+            self.logger = self.Logger()
+            self.Response = self.Response
+    
+    mock_context = MockContext()
+    # Test con array statico
+    test_event = type("Event", (), {"body": None})()
+    handler(mock_context, test_event)
