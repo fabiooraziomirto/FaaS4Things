@@ -13,6 +13,9 @@ def handler(context, event):
     context.logger.info(f'Usando array statico di {len(data)} elementi')
     
     try:
+        # Timestamp di inizio per tracking
+        start_timestamp = time.time()
+        
         # Inizializza il monitoraggio delle risorse
         resource_monitor = ResourceMonitor()
         
@@ -43,7 +46,23 @@ def handler(context, event):
         context.logger.info(f'Somma calcolata: {result} in {execution_time:.6f} secondi')
         context.logger.info(f'CPU media: {cpu_stats["average"]:.2f}%, RAM media: {memory_stats["average"]:.2f} MB')
         
+        # Determina lo status dell'esecuzione
+        status = "success"
+        if execution_time > 1.0:  # Se impiega più di 1 secondo
+            status = "slow"
+        elif cpu_stats["max"] > 80:  # Se la CPU supera l'80%
+            status = "high_cpu"
+        elif memory_stats["max"] > 100:  # Se la memoria supera i 100MB
+            status = "high_memory"
+        
         response_body = {
+            # Campi principali per lo script bash (nomi semplificati)
+            "status": status,
+            "execution_time": execution_time,
+            "memory_used": memory_stats["average"] * 1024 * 1024,  # Converti in bytes per compatibilità
+            "cpu_time": cpu_stats["average"],
+            
+            # Dati dettagliati originali
             "array_info": {
                 "size": len(data),
                 "sum": result,
@@ -51,7 +70,8 @@ def handler(context, event):
             },
             "performance": {
                 "execution_time_seconds": execution_time,
-                "timestamp": time.time()
+                "timestamp": start_timestamp,
+                "end_timestamp": time.time()
             },
             "cpu_usage": {
                 "initial_percent": initial_cpu,
@@ -75,12 +95,28 @@ def handler(context, event):
                 "cpu_count_logical": psutil.cpu_count(logical=True),
                 "total_memory_mb": psutil.virtual_memory().total / 1024 / 1024,
                 "available_memory_mb": psutil.virtual_memory().available / 1024 / 1024
+            },
+            # Metadati aggiuntivi per analisi
+            "test_metadata": {
+                "request_id": f"req_{int(start_timestamp * 1000)}",
+                "function_name": "on2",
+                "array_type": "static",
+                "monitoring_samples": {
+                    "cpu": cpu_stats["samples"],
+                    "memory": memory_stats["samples"]
+                }
             }
         }
         
         return context.Response(
             body=json.dumps(response_body, indent=2),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "X-Execution-Time": str(execution_time),
+                "X-Memory-Used": str(memory_stats["average"]),
+                "X-CPU-Usage": str(cpu_stats["average"]),
+                "X-Status": status
+            },
             content_type='application/json',
             status_code=200
         )
@@ -89,13 +125,24 @@ def handler(context, event):
         error_msg = f"Errore durante l'elaborazione delle operazioni lineari: {str(e)}"
         context.logger.error(error_msg)
         error_response = {
+            # Campi per compatibilità con script bash
+            "status": "error",
+            "execution_time": 0,
+            "memory_used": 0,
+            "cpu_time": 0,
+            
+            # Dettagli errore
             "error": str(e),
             "message": "Errore durante l'elaborazione",
-            "timestamp": time.time()
+            "timestamp": time.time(),
+            "error_type": type(e).__name__
         }
         return context.Response(
             body=json.dumps(error_response, indent=2),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "X-Status": "error"
+            },
             content_type='application/json',
             status_code=500
         )
@@ -105,12 +152,14 @@ def sum_array(arr):
     total = 0
     for val in arr:
         total += val
+        # Aggiunge un micro-delay per rendere il calcolo più visibile nei test
+        time.sleep(0.00001)  # 10 microsecondi per elemento
     return total
 
 class ResourceMonitor:
     """Classe per monitorare CPU e RAM durante l'esecuzione"""
     
-    def __init__(self, interval: float = 0.1):
+    def __init__(self, interval: float = 0.05):  # Intervallo ridotto per più campioni
         self.interval = interval
         self.monitoring = False
         self.cpu_readings: List[float] = []
@@ -139,15 +188,17 @@ class ResourceMonitor:
             try:
                 # CPU usage (percentuale del sistema)
                 cpu_percent = psutil.cpu_percent(interval=None)
-                self.cpu_readings.append(cpu_percent)
+                if cpu_percent > 0:  # Solo se abbiamo una lettura valida
+                    self.cpu_readings.append(cpu_percent)
                 
                 # Memory usage del processo corrente (in MB)
                 memory_mb = self.process.memory_info().rss / 1024 / 1024
                 self.memory_readings.append(memory_mb)
                 
                 time.sleep(self.interval)
-            except Exception:
-                # Ignora errori di lettura e continua
+            except Exception as e:
+                # Log l'errore ma continua il monitoraggio
+                print(f"Error in monitoring: {e}")
                 pass
     
     def get_cpu_stats(self) -> Dict[str, float]:
@@ -156,9 +207,9 @@ class ResourceMonitor:
             return {"average": 0, "max": 0, "min": 0, "samples": 0}
         
         return {
-            "average": sum(self.cpu_readings) / len(self.cpu_readings),
-            "max": max(self.cpu_readings),
-            "min": min(self.cpu_readings),
+            "average": round(sum(self.cpu_readings) / len(self.cpu_readings), 2),
+            "max": round(max(self.cpu_readings), 2),
+            "min": round(min(self.cpu_readings), 2),
             "samples": len(self.cpu_readings)
         }
     
@@ -168,8 +219,8 @@ class ResourceMonitor:
             return {"average": 0, "max": 0, "min": 0, "samples": 0}
         
         return {
-            "average": sum(self.memory_readings) / len(self.memory_readings),
-            "max": max(self.memory_readings),
-            "min": min(self.memory_readings),
+            "average": round(sum(self.memory_readings) / len(self.memory_readings), 2),
+            "max": round(max(self.memory_readings), 2),
+            "min": round(min(self.memory_readings), 2),
             "samples": len(self.memory_readings)
         }
