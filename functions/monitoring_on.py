@@ -77,5 +77,4 @@ def sum_array(arr: List[int]) -> int:
     total = 0
     for val in arr:
         total += val
-        time.sleep(0.00001)  # Per simulare carico
     return total
