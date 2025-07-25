@@ -3,9 +3,18 @@ import requests
  
 def handler(context, event):
     try:
-        payload = event.body  # già un dizionario JSON
+        # Verifica il tipo di event.body e decodifica se necessario
+        if isinstance(event.body, (bytes, str)):
+            body_str = event.body.decode("utf-8") if isinstance(event.body, bytes) else event.body
+            payload = json.loads(body_str)
+        elif isinstance(event.body, dict):
+            payload = event.body
+        else:
+            raise ValueError("Formato del body non riconosciuto")
+ 
         context.logger.info(f"Payload ricevuto: {payload}")
  
+        # Inoltra la richiesta al pod Node.js
         response = requests.post(
             "http://10.42.0.237:3000/forward",
             headers={"Content-Type": "application/json"},
