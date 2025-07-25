@@ -9,7 +9,7 @@ def handler(context, event):
  
         # Forward al server Node.js
         response = requests.post(
-            "http://nodejs-pod.rest.svc.cluster.local:3000/forward",
+            "http://10.42.0.237:3000/forward",
             data=payload,
             headers={"Content-Type": "application/json"}
         )
