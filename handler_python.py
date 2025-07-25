@@ -3,13 +3,11 @@ import requests
  
 def handler(context, event):
     try:
-        # Decodifica il corpo della richiesta
-        payload = json.loads(event.body.decode('utf-8'))
+        payload = event.body  # già un dizionario JSON
         context.logger.info(f"Payload ricevuto: {payload}")
  
-        # Inoltra la richiesta direttamente all'IP del pod
         response = requests.post(
-            "http://10.42.0.237:3000/forward",  # IP del pod Node.js
+            "http://10.42.0.237:3000/forward",
             headers={"Content-Type": "application/json"},
             data=json.dumps(payload),
             timeout=10
