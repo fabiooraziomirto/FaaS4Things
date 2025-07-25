@@ -1,39 +1,23 @@
-package main
+import requests
+import json
  
-import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+def handler(context, event):
+    try:
+        # Dati ricevuti dalla richiesta (es. POST body)
+        payload = event.body.decode('utf-8')
+        context.logger.info(f"Received event: {payload}")
  
-	"github.com/nuclio/nuclio-sdk-go"
-)
+        # Forward al server Node.js
+        response = requests.post(
+            "http://10.42.0.237:3000/forward",
+            data=payload,
+            headers={"Content-Type": "application/json"}
+        )
  
-func Handler(context nuclio.Context, event nuclio.Event) (interface{}, error) {
-	// Definisci l’URL del server Node.js
-	url := "http://nodejs-pod.rest.svc.cluster.local:3000/endpoint"
+        # Log e risposta
+        context.logger.info(f"Forwarded to Node.js. Status: {response.status_code}")
+        return context.Response(body=f"Forwarded with status {response.status_code}", status_code=200)
  
-	// Corpo della richiesta (puoi adattarlo al tuo backend)
-	jsonBody := []byte(`{"message": "Function triggered!"}`)
- 
-	// Crea la richiesta HTTP
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %v", err)
-	}
- 
-	req.Header.Set("Content-Type", "application/json")
- 
-	// Invia la richiesta
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
- 
-	// Legge la risposta
-	body, _ := ioutil.ReadAll(resp.Body)
-	context.Logger.InfoWith("Forwarded to Node.js", "response", string(body))
- 
-	return string(body), nil
-}
+    except Exception as e:
+        context.logger.error(f"Error: {str(e)}")
+        return context.Response(body="Error forwarding request", status_code=500)
