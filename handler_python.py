@@ -8,10 +8,10 @@ def handler(context, event):
         context.logger.info(f"Received event: {payload}")
  
         # Forward al server Node.js
-        response = requests.post(
-            "http://10.42.0.237:3000/forward",
-            data=payload,
-            headers={"Content-Type": "application/json"}
+        response = requests.get(
+            "http://10.42.0.237:3000/health"#,
+            #data=payload,
+            #headers={"Content-Type": "application/json"}
         )
  
         # Log e risposta
