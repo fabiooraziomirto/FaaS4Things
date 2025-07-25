@@ -33,7 +33,7 @@ func Handler(context nuclio.Context, event nuclio.Event) (interface{}, error) {
 	}
 
 	// URL del server da contattare
-	url := "http://10.42.0.71:3000/forward"
+	url := "http://10.42.0.122:3000/forward"
 
 	// Crea la richiesta HTTP
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
