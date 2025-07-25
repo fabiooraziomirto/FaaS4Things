@@ -16,7 +16,7 @@ def handler(context, event):
  
         # Inoltra la richiesta al pod Node.js
         response = requests.post(
-            "http://10.42.0.237:3000/forward",
+            "http://10.42.0.240:3000/forward",
             headers={"Content-Type": "application/json"},
             data=json.dumps(payload),
             timeout=10
