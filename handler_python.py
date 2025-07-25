@@ -1,23 +1,32 @@
-import requests
 import json
+import requests
  
 def handler(context, event):
     try:
-        # Dati ricevuti dalla richiesta (es. POST body)
-        payload = event.body.decode('utf-8')
-        context.logger.info(f"Received event: {payload}")
+        # Decodifica il corpo della richiesta
+        payload = json.loads(event.body.decode('utf-8'))
+        context.logger.info(f"Payload ricevuto: {payload}")
  
-        # Forward al server Node.js
-        response = requests.get(
-            "http://10.42.0.237:3000/health"#,
-            #data=payload,
-            #headers={"Content-Type": "application/json"}
+        # Inoltra la richiesta direttamente all'IP del pod
+        response = requests.post(
+            "http://10.42.0.237:3000/forward",  # IP del pod Node.js
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(payload),
+            timeout=10
         )
  
-        # Log e risposta
-        context.logger.info(f"Forwarded to Node.js. Status: {response.status_code}")
-        return context.Response(body=f"Forwarded with status {response.status_code}", status_code=200)
+        context.logger.info(f"Forward riuscito con status {response.status_code}")
+ 
+        return context.Response(
+            body=response.text,
+            status_code=response.status_code,
+            headers={"Content-Type": "application/json"}
+        )
  
     except Exception as e:
-        context.logger.error(f"Error: {str(e)}")
-        return context.Response(body="Error forwarding request", status_code=500)
+        context.logger.error(f"Errore durante il forward: {str(e)}")
+        return context.Response(
+            body=json.dumps({"error": "Errore interno", "message": str(e)}),
+            status_code=500,
+            headers={"Content-Type": "application/json"}
+        )
