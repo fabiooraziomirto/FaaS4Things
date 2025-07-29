@@ -12,10 +12,10 @@ import (
 type ResponseBody struct {
 	Array               []int   `json:"array"`
 	Sum                 int     `json:"sum"`
-	ArraySize          int     `json:"array_size"`
+	ArraySize           int     `json:"array_size"`
 	ExecutionTimeSeconds float64 `json:"execution_time_seconds"`
-	Complexity         string  `json:"complexity"`
-	Timestamp          float64 `json:"timestamp"`
+	Complexity          string  `json:"complexity"`
+	Timestamp           float64 `json:"timestamp"`
 }
  
 // ErrorResponse rappresenta la struttura della risposta di errore
@@ -50,10 +50,10 @@ func Handler(context *nuclio.Context, event nuclio.Event) (interface{}, error) {
 	responseBody := ResponseBody{
 		Array:               data,
 		Sum:                 result,
-		ArraySize:          len(data),
+		ArraySize:           len(data),
 		ExecutionTimeSeconds: executionTime,
-		Complexity:         "O(n)",
-		Timestamp:          float64(time.Now().Unix()),
+		Complexity:          "O(n)",
+		Timestamp:           float64(time.Now().Unix()),
 	}
  
 	// Serializzazione JSON
@@ -90,4 +90,9 @@ func sumArray(arr []int) int {
 		total += val
 	}
 	return total
+}
+
+// main registra il handler con Nuclio
+func main() {
+	nuclio.SetHandler(Handler)
 }
