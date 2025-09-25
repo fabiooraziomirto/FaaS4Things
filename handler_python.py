@@ -16,7 +16,8 @@ def handler(context, event):
  
         # Inoltra la richiesta al pod Node.js
         response = requests.post(
-            "http://10.42.0.16:3000/forward",
+            #"http://10.42.0.16:3000/forward", #versione clover senza cloud
+            "http://10.42.1.70:3000/forward",  #versione faas finale
             headers={"Content-Type": "application/json"},
             data=json.dumps(payload),
             timeout=10
