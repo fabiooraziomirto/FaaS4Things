@@ -42,3 +42,8 @@ curl -X POST http://192.168.1.246:5002/deploy-github   -H "Content-Type: applica
       "buildCommand": "pip install requests",
       "handler": "handler_python:handler"
   }'
+
+####curl dentro LR######
+curl -X POST http://localhost:32768 \
+  -H "Content-Type: application/json" \
+  -d '{"variable": "server1", "function": "getData"}'
