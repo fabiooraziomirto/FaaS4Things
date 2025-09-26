@@ -33,3 +33,12 @@ curl -X POST http://localhost:8888/deploy-github \
     "githubUrl": "https://github.com/tuo-utente/tuo-repo"
 }'
 
+###Curl cloverleaf###
+curl -X POST http://192.168.1.246:5002/deploy-github   -H "Content-Type: application/json"   -d '{
+      "name": "pippo",
+      "githubUrl": "https://raw.githubusercontent.com/fabiooraziomirto/FaaS4Things/refs/heads/cloverleaf/handler_python.py",
+      "runtime": "python",
+      "platform": "local",
+      "buildCommand": "pip install requests",
+      "handler": "handler_python:handler"
+  }'
