@@ -43,6 +43,21 @@ curl -X POST http://192.168.1.246:5002/deploy-github   -H "Content-Type: applica
       "handler": "handler_python:handler"
   }'
 
+###CURL CLOVERLEAF NUOVO HANDLER CON ISTRUZIONI
+curl -X POST http://192.168.1.246:5002/deploy-github   -H "Content-Type: application/json"   -d '{
+    "name": "istruzione1-fn",
+    "githubUrl": "https://raw.githubusercontent.com/fabiooraziomirto/FaaS4Things/refs/heads/clover_LB/handler.py",
+    "runtime": "python",
+    "platform": "local",
+    "buildCommand": "pip install requests",
+    "handler": "handler:handler",
+    "env": [
+      {"name": "INSTRUCTION_TYPE", "value": "istruzione1"},
+      {"name": "FORWARD_SECRET", "value": "forward_secret_123"},
+      {"name": "FORWARD_URL", "value": "http://10.42.1.70:3000/forward"}
+    ]
+  }'
+
 ####curl dentro LR######
 curl -X POST http://localhost:32768 \
   -H "Content-Type: application/json" \
