@@ -2,6 +2,8 @@
 
 Cloud → LB → Device → Forward → Mock
 
+
+Nota: mocksec, serverinosec
 ---
 
 ## 📌 Obiettivo
