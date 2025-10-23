@@ -12,7 +12,7 @@ SHARED_SECRET = os.environ.get("SHARED_SECRET", "changeme")
 INSTRUCTION_TYPE = os.environ.get("INSTRUCTION_TYPE", "istruzione_default")
 
 # URL del forward server (porta 3000)
-FORWARD_URL = os.environ.get("FORWARD_URL", "http://10.42.1.73:3000/forward")
+FORWARD_URL = os.environ.get("FORWARD_URL", "http://10.42.1.72:3000/forward")
 
 
 def handler(context, event):
